@@ -1,11 +1,12 @@
-from tqdm import tqdm
-import torch
 import timeit
 import argparse
+from tqdm import tqdm
+import torch
 # import matplotlib.pyplot as plt
 
 from torch_geometric.loader import TemporalDataLoader
 from torch_geometric.nn import TGNMemory
+from modules.memory_module import TensorTGNMemory
 from torch_geometric.nn.models.tgn import (
     IdentityMessage,
     LastAggregator,
@@ -17,6 +18,7 @@ from modules.emb_module import GraphAttentionEmbedding
 from tgb.nodeproppred.dataset_pyg import PyGNodePropPredDataset
 from tgb.nodeproppred.evaluate import Evaluator
 from tgb.utils.utils import set_random_seed
+from tgb.utils.stats import plot_curve
 
 from pathlib import Path
 import logging
@@ -55,7 +57,7 @@ lr = 0.0001
 epochs = 5
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-name = "tgbn-genre"
+name = "tgbn-reddit"
 dataset = PyGNodePropPredDataset(name=name, root="datasets")
 train_mask = dataset.train_mask
 val_mask = dataset.val_mask
@@ -86,7 +88,7 @@ neighbor_loader = LastNeighborLoader(data.num_nodes, size=10, device=device)
 
 memory_dim = time_dim = embedding_dim = 100
 
-memory = TGNMemory(
+memory = TensorTGNMemory(
     data.num_nodes,
     data.msg.size(-1),
     memory_dim,
@@ -216,7 +218,6 @@ def train():
             score = result_dict[eval_metric]
             total_score += score
             num_label_ts += 1
-
             loss.backward()
             optimizer.step()
             total_loss += float(loss)

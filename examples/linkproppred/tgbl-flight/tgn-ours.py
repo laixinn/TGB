@@ -4,7 +4,7 @@ Reference:
     - https://github.com/pyg-team/pytorch_geometric/blob/master/examples/tgn.py
 
 command for an example run:
-    python examples/linkproppred/tgbl-review/tgn.py --data "tgbl-review" --num_run 1 --seed 1
+    python examples/linkproppred/tgbl-flight/tgn.py --data "tgbl-flight" --num_run 1 --seed 1
 """
 
 import math
@@ -32,7 +32,7 @@ from modules.emb_module import GraphAttentionEmbedding
 from modules.msg_func import IdentityMessage
 from modules.msg_agg import LastAggregator
 from modules.neighbor_loader import LastNeighborLoader
-from modules.memory_module import TGNMemory
+from modules.memory_module import TGNMemory,TensorTGNMemory
 from modules.early_stopping import  EarlyStopMonitor
 from tgb.linkproppred.dataset_pyg import PyGLinkPropPredDataset
 
@@ -210,7 +210,7 @@ start_overall = timeit.default_timer()
 args, _ = get_args()
 logger.info(args)
 
-DATA = "tgbl-review"
+DATA = "tgbl-flight"
 LR = args.lr
 BATCH_SIZE = args.bs
 K_VALUE = args.k_value  
@@ -255,7 +255,7 @@ min_dst_idx, max_dst_idx = int(data.dst.min()), int(data.dst.max())
 neighbor_loader = LastNeighborLoader(data.num_nodes, size=NUM_NEIGHBORS, device=device)
 
 # define the model end-to-end
-memory = TGNMemory(
+memory = TensorTGNMemory(
     data.num_nodes,
     data.msg.size(-1),
     MEM_DIM,
@@ -322,14 +322,33 @@ for run_idx in range(NUM_RUNS):
     dataset.load_val_ns()
 
     val_perf_list = []
+    train_times_l, val_times_l = [], []
+    free_mem_l, total_mem_l, used_mem_l = [], [], []
     start_train_val = timeit.default_timer()
     for epoch in range(1, NUM_EPOCH + 1):
         # training
         start_epoch_train = timeit.default_timer()
         loss = train()
+        end_epoch_train = timeit.default_timer()
         logger.info(
-            f"Epoch: {epoch:02d}, Loss: {loss:.4f}, Training elapsed Time (s): {timeit.default_timer() - start_epoch_train: .4f}"
+            f"Epoch: {epoch:02d}, Loss: {loss:.4f}, Training elapsed Time (s): {end_epoch_train - start_epoch_train: .4f}"
         )
+        # checking GPU memory usage
+        free_mem, used_mem, total_mem = 0, 0, 0
+        if torch.cuda.is_available():
+            logger.info("DEBUG: device: {}".format(torch.cuda.get_device_name(0)))
+            free_mem, total_mem = torch.cuda.mem_get_info()
+            used_mem = total_mem - free_mem
+            logger.info("------------Epoch {}: GPU memory usage-----------".format(epoch))
+            logger.info("Free memory: {}".format(free_mem))
+            logger.info("Total available memory: {}".format(total_mem))
+            logger.info("Used memory: {}".format(used_mem))
+            logger.info("--------------------------------------------")
+        
+        train_times_l.append(end_epoch_train - start_epoch_train)
+        free_mem_l.append(float((free_mem*1.0)/2**30))  # in GB
+        used_mem_l.append(float((used_mem*1.0)/2**30))  # in GB
+        total_mem_l.append(float((total_mem*1.0)/2**30))  # in GB
 
     train_val_time = timeit.default_timer() - start_train_val
     logger.info(f"Train & Validation: Elapsed Time (s): {train_val_time: .4f}")

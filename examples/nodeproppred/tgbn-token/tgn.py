@@ -2,7 +2,7 @@ import timeit
 import argparse
 from tqdm import tqdm
 import torch
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 
 from torch_geometric.loader import TemporalDataLoader
@@ -20,20 +20,41 @@ from tgb.nodeproppred.evaluate import Evaluator
 from tgb.utils.utils import set_random_seed
 from tgb.utils.stats import plot_curve
 
+from pathlib import Path
+import logging
+import time, os
+
+### set up logger
+filepath = os.path.dirname(os.path.abspath(__file__))
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+Path(f"{filepath}/log/").mkdir(parents=True, exist_ok=True)
+fh = logging.FileHandler('{}/log/{}.log'.format(filepath, str(time.time())))
+fh.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARN)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
+
 parser = argparse.ArgumentParser(description='parsing command line arguments as hyperparameters')
 parser.add_argument('-s', '--seed', type=int, default=1,
                     help='random seed to use')
 parser.parse_args()
 args = parser.parse_args()
+logger.info(args)
 # setting random seed
 seed = int(args.seed) #1,2,3,4,5
-print ("setting random seed to be", seed)
+logger.info(f"setting random seed to be ${seed}")
 torch.manual_seed(seed)
 set_random_seed(seed)
 
 # hyperparameters
 lr = 0.0001
-epochs = 50
+epochs = 5
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 name = "tgbn-token"
@@ -57,7 +78,7 @@ test_data = data[test_mask]
 # Ensure to only sample actual destination nodes as negatives.
 min_dst_idx, max_dst_idx = int(data.dst.min()), int(data.dst.max())
 
-batch_size = 200
+batch_size = 400
 
 train_loader = TemporalDataLoader(train_data, batch_size=batch_size)
 val_loader = TemporalDataLoader(val_data, batch_size=batch_size)
@@ -304,38 +325,10 @@ best_test_idx = 0
 for epoch in range(1, epochs + 1):
     start_time = timeit.default_timer()
     train_dict = train()
-    print("------------------------------------")
-    print(f"training Epoch: {epoch:02d}")
-    print(train_dict)
+    logger.info("------------------------------------")
+    logger.info(f"training Epoch: {epoch:02d}")
+    logger.info(train_dict)
     train_curve.append(train_dict[eval_metric])
-    print("Training takes--- %s seconds ---" % (timeit.default_timer() - start_time))
-    
-    start_time = timeit.default_timer()
-    val_dict = test(val_loader)
-    print(val_dict)
-    val_curve.append(val_dict[eval_metric])
-    if (val_dict[eval_metric] > max_val_score):
-        max_val_score = val_dict[eval_metric]
-        best_test_idx = epoch - 1
-    print("Validation takes--- %s seconds ---" % (timeit.default_timer() - start_time))
+    logger.info("Training takes--- %s seconds ---" % (timeit.default_timer() - start_time))
 
-    start_time = timeit.default_timer()
-    test_dict = test(test_loader)
-    print(test_dict)
-    test_curve.append(test_dict[eval_metric])
-    print("Test takes--- %s seconds ---" % (timeit.default_timer() - start_time))
-    print("------------------------------------")
     dataset.reset_label_time()
-
-
-# code for plotting
-plot_curve(train_curve, "train_curve")
-plot_curve(val_curve, "val_curve")
-plot_curve(test_curve, "test_curve")
-
-max_test_score = test_curve[best_test_idx]
-print("------------------------------------")
-print("------------------------------------")
-print ("best val score: ", max_val_score)
-print ("best validation epoch   : ", best_test_idx + 1)
-print ("best test score: ", max_test_score)

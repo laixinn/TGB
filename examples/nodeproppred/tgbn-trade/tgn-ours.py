@@ -1,11 +1,12 @@
-from tqdm import tqdm
-import torch
 import timeit
 import argparse
+from tqdm import tqdm
+import torch
 # import matplotlib.pyplot as plt
 
 from torch_geometric.loader import TemporalDataLoader
 from torch_geometric.nn import TGNMemory
+from modules.memory_module import TensorTGNMemory
 from torch_geometric.nn.models.tgn import (
     IdentityMessage,
     LastAggregator,
@@ -17,6 +18,7 @@ from modules.emb_module import GraphAttentionEmbedding
 from tgb.nodeproppred.dataset_pyg import PyGNodePropPredDataset
 from tgb.nodeproppred.evaluate import Evaluator
 from tgb.utils.utils import set_random_seed
+from tgb.utils.stats import plot_curve
 
 from pathlib import Path
 import logging
@@ -46,7 +48,6 @@ args = parser.parse_args()
 logger.info(args)
 # setting random seed
 seed = int(args.seed) #1,2,3,4,5
-logger.info(f"setting random seed to be ${seed}")
 torch.manual_seed(seed)
 set_random_seed(seed)
 
@@ -55,7 +56,7 @@ lr = 0.0001
 epochs = 5
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-name = "tgbn-genre"
+name = "tgbn-trade"
 dataset = PyGNodePropPredDataset(name=name, root="datasets")
 train_mask = dataset.train_mask
 val_mask = dataset.val_mask
@@ -86,7 +87,7 @@ neighbor_loader = LastNeighborLoader(data.num_nodes, size=10, device=device)
 
 memory_dim = time_dim = embedding_dim = 100
 
-memory = TGNMemory(
+memory = TensorTGNMemory(
     data.num_nodes,
     data.msg.size(-1),
     memory_dim,
@@ -142,10 +143,10 @@ def train():
 
     total_loss = 0
     label_t = dataset.get_label_time()  # check when does the first label start
-    total_score = 0
     num_label_ts = 0
+    total_score = 0
 
-    for batch in tqdm(train_loader):
+    for batch in train_loader:
         batch = batch.to(device)
         optimizer.zero_grad()
         src, dst, t, msg = batch.src, batch.dst, batch.t, batch.msg
@@ -237,12 +238,11 @@ def test(loader):
     memory.eval()
     gnn.eval()
     node_pred.eval()
-
+    total_score = 0
     label_t = dataset.get_label_time()  # check when does the first label start
     num_label_ts = 0
-    total_score = 0
 
-    for batch in tqdm(loader):
+    for batch in loader:
         batch = batch.to(device)
         src, dst, t, msg = batch.src, batch.dst, batch.t, batch.msg
 

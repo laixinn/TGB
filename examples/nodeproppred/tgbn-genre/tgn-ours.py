@@ -6,6 +6,7 @@ import argparse
 
 from torch_geometric.loader import TemporalDataLoader
 from torch_geometric.nn import TGNMemory
+from modules.memory_module import TensorTGNMemory
 from torch_geometric.nn.models.tgn import (
     IdentityMessage,
     LastAggregator,
@@ -86,7 +87,7 @@ neighbor_loader = LastNeighborLoader(data.num_nodes, size=10, device=device)
 
 memory_dim = time_dim = embedding_dim = 100
 
-memory = TGNMemory(
+memory = TensorTGNMemory(
     data.num_nodes,
     data.msg.size(-1),
     memory_dim,

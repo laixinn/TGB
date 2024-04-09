@@ -36,6 +36,25 @@ from modules.memory_module import TGNMemory
 from modules.early_stopping import  EarlyStopMonitor
 from tgb.linkproppred.dataset_pyg import PyGLinkPropPredDataset
 
+from pathlib import Path
+import logging
+import time
+
+### set up logger
+filepath = os.path.dirname(os.path.abspath(__file__))
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+Path(f"{filepath}/log/").mkdir(parents=True, exist_ok=True)
+fh = logging.FileHandler('{}/log/{}.log'.format(filepath, str(time.time())))
+fh.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARN)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
 
 # ==========
 # ========== Define helper function...
@@ -189,7 +208,7 @@ start_overall = timeit.default_timer()
 
 # ========== set parameters...
 args, _ = get_args()
-print("INFO: Arguments:", args)
+logger.info(args)
 
 DATA = "tgbl-comment"
 LR = args.lr
@@ -268,9 +287,9 @@ criterion = torch.nn.BCEWithLogitsLoss()
 assoc = torch.empty(data.num_nodes, dtype=torch.long, device=device)
 
 
-print("==========================================================")
-print(f"=================*** {MODEL_NAME}: LinkPropPred: {DATA} ***=============")
-print("==========================================================")
+logger.info("==========================================================")
+logger.info(f"=================*** {MODEL_NAME}: LinkPropPred: {DATA} ***=============")
+logger.info("==========================================================")
 
 evaluator = Evaluator(name=DATA)
 neg_sampler = dataset.negative_sampler
@@ -279,13 +298,13 @@ neg_sampler = dataset.negative_sampler
 results_path = f'{osp.dirname(osp.abspath(__file__))}/saved_results'
 if not osp.exists(results_path):
     os.mkdir(results_path)
-    print('INFO: Create directory {}'.format(results_path))
+    logger.info('INFO: Create directory {}'.format(results_path))
 Path(results_path).mkdir(parents=True, exist_ok=True)
 results_filename = f'{results_path}/{MODEL_NAME}_{DATA}_results.json'
 
 for run_idx in range(NUM_RUNS):
-    print('-------------------------------------------------------------------------------')
-    print(f"INFO: >>>>> Run: {run_idx} <<<<<")
+    logger.info('-------------------------------------------------------------------------------')
+    logger.info(f"INFO: >>>>> Run: {run_idx} <<<<<")
     start_run = timeit.default_timer()
 
     # set the seed for deterministic results...
@@ -308,53 +327,9 @@ for run_idx in range(NUM_RUNS):
         # training
         start_epoch_train = timeit.default_timer()
         loss = train()
-        print(
+        logger.info(
             f"Epoch: {epoch:02d}, Loss: {loss:.4f}, Training elapsed Time (s): {timeit.default_timer() - start_epoch_train: .4f}"
         )
 
-        # validation
-        start_val = timeit.default_timer()
-        perf_metric_val = test(val_loader, neg_sampler, split_mode="val")
-        print(f"\tValidation {metric}: {perf_metric_val: .4f}")
-        print(f"\tValidation: Elapsed time (s): {timeit.default_timer() - start_val: .4f}")
-        val_perf_list.append(perf_metric_val)
-
-        # check for early stopping
-        if early_stopper.step_check(perf_metric_val, model):
-            break
-
     train_val_time = timeit.default_timer() - start_train_val
-    print(f"Train & Validation: Elapsed Time (s): {train_val_time: .4f}")
-
-    # ==================================================== Test
-    # first, load the best model
-    early_stopper.load_checkpoint(model)
-
-    # loading the test negative samples
-    dataset.load_test_ns()
-
-    # final testing
-    start_test = timeit.default_timer()
-    perf_metric_test = test(test_loader, neg_sampler, split_mode="test")
-
-    print(f"INFO: Test: Evaluation Setting: >>> ONE-VS-MANY <<< ")
-    print(f"\tTest: {metric}: {perf_metric_test: .4f}")
-    test_time = timeit.default_timer() - start_test
-    print(f"\tTest: Elapsed Time (s): {test_time: .4f}")
-
-    save_results({'model': MODEL_NAME,
-                  'data': DATA,
-                  'run': run_idx,
-                  'seed': SEED,
-                  f'val {metric}': val_perf_list,
-                  f'test {metric}': perf_metric_test,
-                  'test_time': test_time,
-                  'tot_train_val_time': train_val_time
-                  }, 
-    results_filename)
-
-    print(f"INFO: >>>>> Run: {run_idx}, elapsed time: {timeit.default_timer() - start_run: .4f} <<<<<")
-    print('-------------------------------------------------------------------------------')
-
-print(f"Overall Elapsed Time (s): {timeit.default_timer() - start_overall: .4f}")
-print("==============================================================")
+    logger.info(f"Train & Validation: Elapsed Time (s): {train_val_time: .4f}")

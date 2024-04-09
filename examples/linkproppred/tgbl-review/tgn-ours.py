@@ -32,7 +32,7 @@ from modules.emb_module import GraphAttentionEmbedding
 from modules.msg_func import IdentityMessage
 from modules.msg_agg import LastAggregator
 from modules.neighbor_loader import LastNeighborLoader
-from modules.memory_module import TGNMemory
+from modules.memory_module import TGNMemory, TensorTGNMemory
 from modules.early_stopping import  EarlyStopMonitor
 from tgb.linkproppred.dataset_pyg import PyGLinkPropPredDataset
 
@@ -255,7 +255,7 @@ min_dst_idx, max_dst_idx = int(data.dst.min()), int(data.dst.max())
 neighbor_loader = LastNeighborLoader(data.num_nodes, size=NUM_NEIGHBORS, device=device)
 
 # define the model end-to-end
-memory = TGNMemory(
+memory = TensorTGNMemory(
     data.num_nodes,
     data.msg.size(-1),
     MEM_DIM,
