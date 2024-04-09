@@ -30,7 +30,21 @@ You can install TGB via [pip](https://pypi.org/project/py-tgb/). **Requires pyth
 pip install py-tgb
 ```
 
-### Reproduce Our Results
+### Our Results and Reproduction
+
+- link property prediction efficacy
+
+|      | coin        | wiki        | review     | comment     | flight      |
+| :--- | :---------- | :---------- | :--------- | :---------- | :---------- |
+| tgn  | 2361\.62136 | 8\.50554    | 990\.14922 | 7613\.05138 | 2361\.62136 |
+| ours | 1021\.69194 | 8\.91294    | 172\.91594 | 1627\.74388 | 2348\.8223  |
+
+- node property prediction efficacy
+
+|      | trade       | token       | genre      | reddit      |
+| :--- | :---------- | :---------- | :--------- | :---------- |
+| tgn  | 9\.6529     | 2191\.2975  | 354\.65202 | 1726\.59832 |
+| ours | 4\.88492    | 1302\.21666 | 248\.07684 | 1036\.38446 |
 
 - For the dynamic link property prediction task, see the `examples/linkproppred/*/tgn-ours.py`
 - For the dynamic node property prediction task, see the `examples/nodeproppred/*/tgn-ours.py`
