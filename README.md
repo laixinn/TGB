@@ -30,19 +30,6 @@ You can install TGB via [pip](https://pypi.org/project/py-tgb/). **Requires pyth
 pip install py-tgb
 ```
 
-### Links and Datasets
-
-The project website can be found [here](https://tgb.complexdatalab.com/).
-
-The API documentations can be found [here](https://shenyanghuang.github.io/TGB/).
-
-all dataset download links can be found at [info.py](https://github.com/shenyangHuang/TGB/blob/main/tgb/utils/info.py)
-
-TGB dataloader will also automatically download the dataset as well as the negative samples for the link property prediction datasets.
-
-if website is unaccessible, please use [this link](https://tgb-website.pages.dev/) instead.
-
-
 ### Reproduce Our Results
 
 - For the dynamic link property prediction task, see the `examples/linkproppred/*/tgn-ours.py`
@@ -51,10 +38,6 @@ if website is unaccessible, please use [this link](https://tgb-website.pages.dev
 ### Key Modification
 
 - Tensorized TGN can be found in `modules/memory_module.py`
-
-### Acknowledgments
-We thank the [OGB](https://ogb.stanford.edu/) team for their support throughout this project and sharing their website code for the construction of [TGB website](https://tgb.complexdatalab.com/).
-
 
 ### Citation
 
