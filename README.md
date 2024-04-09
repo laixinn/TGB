@@ -22,35 +22,6 @@ Overview of the Temporal Graph Benchmark (TGB) pipeline:
 
 **See all version differences and update notes [here](https://tgb.complexdatalab.com/docs/update/)**
 
-### Announcements
-
-**Excited to announce TGX, a companion package for analyzing temporal graphs in WSDM 2024 Demo Track**
-
-TGX supports all TGB datasets and provides numerous temporal graph visualization plots and statistics out of the box. See our paper: [Temporal Graph Analysis with TGX](https://arxiv.org/abs/2402.03651) and [TGX website](https://complexdata-mila.github.io/TGX/).
-
-**Excited to announce that TGB has been accepted to NeurIPS 2023 Datasets and Benchmarks Track**
-
-Thanks to everyone for your help in improving TGB! we will continue to improve TGB based on your feedback and suggestions. 
-
-**Please update to version `0.9.2`**
-
-#### version `0.9.2`
-
-Update the fix for `tgbl-flight` where now the unix timestamps are provided directly in the dataset. If you had issues with `tgbl-flight`, please remove `TGB/tgb/datasets/tgbl_flight`and redownload the dataset for a clean install
-
-
-
-#### version `0.9.1`
-
-Fixed an issue for `tgbl-flight` where the timestamp conversion is incorrect due to time zone differences. If you had issues with `tgbl-flight` before, please update your package. 
-
-
-#### version `0.9.0`
-
-Added the large `tgbn-token` dataset with 72 million edges to the `nodeproppred` dataset. 
-
-Fixed errors in `tgbl-coin` and `tgbl-flight` where a small set of edges are not sorted chronologically. Please update your dataset version for them to version 2 (will be prompted in terminal).
-
 
 ### Pip Install
 
@@ -72,11 +43,14 @@ TGB dataloader will also automatically download the dataset as well as the negat
 if website is unaccessible, please use [this link](https://tgb-website.pages.dev/) instead.
 
 
-### Running Example Methods
+### Reproduce Our Results
 
-- For the dynamic link property prediction task, see the [`examples/linkproppred`](https://github.com/shenyangHuang/TGB/tree/main/examples/linkproppred) folder for example scripts to run TGN, DyRep and EdgeBank on TGB datasets.
-- For the dynamic node property prediction task, see the [`examples/nodeproppred`](https://github.com/shenyangHuang/TGB/tree/main/examples/nodeproppred) folder for example scripts to run TGN, DyRep and EdgeBank on TGB datasets.
-- For all other baselines, please see the [TGB_Baselines](https://github.com/fpour/TGB_Baselines) repo.
+- For the dynamic link property prediction task, see the `examples/linkproppred/*/tgn-ours.py`
+- For the dynamic node property prediction task, see the `examples/nodeproppred/*/tgn-ours.py`
+
+### Key Modification
+
+- Tensorized TGN can be found in `modules/memory_module.py`
 
 ### Acknowledgments
 We thank the [OGB](https://ogb.stanford.edu/) team for their support throughout this project and sharing their website code for the construction of [TGB website](https://tgb.complexdatalab.com/).
