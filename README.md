@@ -52,7 +52,9 @@ pip install py-tgb
 ### Key Modification
 
 - Tensorized TGN can be found in `modules/memory_module.py`
-![workflow](https://github.com/laixinn/TGB/assets/26809049/6f238ffc-d1b4-4828-a17d-9302c9f4ca4a)
+- Workflow <img width="1468" alt="workflow" src="https://github.com/laixinn/TGB/assets/26809049/743e53c2-5ddf-4fdc-b1b4-2f1c2a4aca49">
+
+
 
 
 ### Citation
